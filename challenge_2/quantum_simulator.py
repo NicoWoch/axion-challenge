@@ -1,5 +1,5 @@
 import random
-from typing import Any, Callable, Iterator
+from typing import Any, Iterator
 
 import numpy as np
 from numpy.typing import NDArray
