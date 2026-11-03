@@ -1,9 +1,16 @@
 import random
-from types import UnionType
 from typing import Any, Callable, Iterator
 
 import numpy as np
 from numpy.typing import NDArray
+
+
+class classproperty:
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, _, owner):
+        return self.func(owner)
 
 
 class QuantumState:
@@ -14,11 +21,11 @@ class QuantumState:
         assert len(self._state.shape) == 2 and self._state.shape[1] == 1, 'Quantum state should be a vector'
         assert self._state.shape[0] == 2 ** self.qubits_count, 'Quantum state should have power of two rows counts'
     
-    @classmethod
+    @classproperty
     def zero(cls) -> QuantumState:
         return QuantumState([[1], [0]])
     
-    @classmethod
+    @classproperty
     def one(cls) -> QuantumState:
         return QuantumState([[0], [1]])
     
@@ -58,10 +65,7 @@ class QuantumState:
     
     __or__ = join
     
-    def apply(self, gate: Gate | Callable[[], Gate]) -> QuantumState:
-        if callable(gate):
-            gate = gate()
-        
+    def apply(self, gate: Gate) -> QuantumState:        
         assert gate.size == self._state.shape[0]
         
         return QuantumState(gate.matrix @ self._state)
@@ -89,15 +93,7 @@ class QuantumState:
 
         
         return out
-
-
-class classproperty:
-    def __init__(self, func):
-        self.func = func
-
-    def __get__(self, _, owner):
-        return self.func(owner)
-    
+  
 
 class Gate:
     def __init__(self, matrix: Any) -> None:
@@ -155,41 +151,3 @@ class Gate:
             [0, 0, 0, 1],
             [0, 0, 1, 0]
         ])
-
-
-def main():
-    state_0 = QuantumState.zero()
-    
-    print(state_0)
-    print(state_0 >> Gate.H)
-    print(state_0 >> Gate.H >> Gate.H)
-    
-    print(state_0 >> Gate.Ry(0.15 * np.pi) >> Gate.Ry(0.85 * np.pi) >> Gate.Ry(-np.pi))
-    
-    psi_0 = state_0.join(state_0)
-    psi_1 = psi_0.apply(Gate.H | Gate.I)
-    psi_2 = psi_1.apply(Gate.CNOT)
-    
-    state_entangled = psi_2
-    
-    print('\n-- Entangled state of 2 qubits --')
-    print(state_entangled)
-    print(state_entangled.measure(0))
-    print(state_entangled)
-    print(state_entangled.measure(0, 1))
-    print(state_entangled)
-    
-    plus_state = QuantumState.zero() >> Gate.H
-    minus_state = QuantumState.one() >> Gate.H
-    
-    psi_0 = plus_state | minus_state
-    psi_1 = psi_0 >> Gate.CNOT
-    
-    print('\n-- Phase kickback using CNOT on (plus, minus) state --')
-    print(psi_0)
-    print(psi_1)
-    
-
-
-if __name__ == '__main__':
-    main()
