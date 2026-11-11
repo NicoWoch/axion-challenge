@@ -44,6 +44,11 @@ q_2: ┤ Ry(x[5]) ├┤ Ry(t[2]) ├┤ Rz(x[2]) ├─────┤ X ├┤
 
 # Wyniki
 
-![alt text](image.png)
-
+| Model | MSE | Accuracy | Precision | Recall | Specificity | F1 Score | Balanced Accuracy | MCC |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| model_dense_encoding RY RZ | 0.6296 | 0.8324 | 0.8236 | 0.6519 | 0.9269 | 0.7278 | 0.7894 | 0.6177 |
+| model_data_reuploading RY RZ | 0.5815 | 0.8269 | 0.7979 | 0.6646 | 0.9119 | 0.7252 | 0.7882 | 0.6057 |
+| model_data_reuploading RZ RY | 1.2425 | 0.6552 | 0.1071 | 0.0004 | 0.9981 | 0.0009 | 0.4993 | -0.0188 |
+| model_data_reuploading RY RZ (features reversed) | 0.5887 | 0.8295 | 0.8045 | 0.6659 | 0.9153 | 0.7287 | 0.7906 | 0.6118 |
+| RandomForestClassifier | 0.4837 | 0.8791 | 0.8629 | 0.7707 | 0.9359 | 0.8142 | 0.8533 | 0.7275 |
 

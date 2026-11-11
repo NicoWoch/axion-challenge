@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Self
+from typing import Any, Self
 
 import numpy as np
 import time
@@ -308,3 +308,76 @@ def compare_models(y_true, *models: tuple[str, np.ndarray, float]):
         )
         .set_caption("Model Performance Comparison")
     )
+
+
+
+def compare_models_md(y_true, *models: tuple[str, np.ndarray, float]) -> str:
+    """
+    Compare multiple binary classification models and generate
+    a Markdown table suitable for README.md.
+
+    Parameters
+    ----------
+    y_true : array-like
+        Ground-truth labels (-1 or 1).
+    *models : tuple
+        Triples of (model_name, output, threshold).
+
+    Returns
+    -------
+    str
+        GitHub-compatible Markdown table.
+    """
+
+    results: list[dict[str, Any]] = []
+
+    for name, output, threshold in models:
+        output = np.asarray(output)
+        predictions = np.where(output >= threshold, 1, -1)
+
+        tn, fp, fn, tp = confusion_matrix(
+            y_true, predictions, labels=[-1, 1]
+        ).ravel()
+
+        results.append({
+            "Model": name,
+            "MSE": mean_squared_error(y_true, output),
+            "Accuracy": accuracy_score(y_true, predictions),
+            "Precision": precision_score(
+                y_true, predictions, pos_label=1, zero_division=0
+            ),
+            "Recall": recall_score(
+                y_true, predictions, pos_label=1, zero_division=0
+            ),
+            "Specificity": tn / (tn + fp) if tn + fp else 0,
+            "F1 Score": f1_score(
+                y_true, predictions, pos_label=1, zero_division=0
+            ),
+            "Balanced Accuracy": balanced_accuracy_score(
+                y_true, predictions
+            ),
+            "MCC": matthews_corrcoef(y_true, predictions),
+        })
+
+    df = pd.DataFrame(results).set_index("Model")
+
+    # Generate Markdown table
+    columns = ["Model"] + list(df.columns)
+
+    header = "| " + " | ".join(columns) + " |"
+    separator = "| " + " | ".join(["---"] * len(columns)) + " |"
+
+    rows = []
+
+    for model, row in df.iterrows():
+        values = [model]
+
+        for col in df.columns:
+            value = f"{row[col]:.4f}"
+
+            values.append(value)
+
+        rows.append("| " + " | ".join(map(str, values)) + " |")
+
+    return "\n".join([header, separator] + rows)
+
